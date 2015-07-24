@@ -41,27 +41,31 @@ struct node* queue_packets(struct node* head, int data, \
                                 int src, int dest, int priority)
 {
     struct node* new_node = newPacket(head, data, src, dest, priority);
+
     if (head == NULL) {
         return new_node;
     }
 
     struct node* tmp = head;
-    int flag = 0;
-    for (tmp = head; tmp -> right != NULL; tmp = tmp -> right) {
-        if (new_node -> priority < tmp -> right -> priority) {
-            flag = 1;
+    for (; tmp != NULL && new_node -> priority > tmp -> priority;) {
+        if (tmp -> right == NULL) {
             break;
         }
+
+        tmp = tmp -> right;
     }
 
-    if (tmp -> right != NULL) {
-        new_node -> right = tmp -> right -> right;
-        new_node -> left = tmp;
-        tmp -> right = new_node;
-    } else {
-        tmp -> right = new_node;
-        new_node -> left = tmp;
+    if (tmp -> left == NULL) {
+        tmp -> left = new_node;
+        new_node -> right = tmp;
+        head = new_node;
+        return head;
     }
+
+    tmp = tmp -> left;
+    new_node -> left = tmp;
+    new_node -> right = tmp -> right;
+    tmp -> right = new_node;
 
     return head;
 }
@@ -77,16 +81,15 @@ struct node* discard_packet(struct node* head, struct node* tmp)
         tmp = NULL;
     }
 
-    for (; trav -> right -> right != NULL && trav -> right != tmp; trav = trav -> right);
+    for (; trav -> right -> right != NULL && trav -> right != tmp; \
+            trav = trav -> right);
 
     tmp = tmp -> right;
     trav -> right = trav -> right -> right;
     trav -> right -> right -> left = trav;
     trav -> right -> right = NULL;
     trav -> right -> left = NULL;
-    return head;
 
-    trav -> right = NULL;
     return head;
 }
 
@@ -114,7 +117,6 @@ int main()
     int data;
     int src;
     int dest;
-    int packets[n];
     int discard_src;
     struct node* head = NULL;
 
@@ -139,20 +141,25 @@ int main()
 
         head = queue_packets(head, data, src, dest, priority);
         cout << endl;
+        cout << "done" << endl;
     }
 
     print_packets(head);
 
+    /*
     cout << "Enter the src of which the packets should be discarded: " << endl;
     cin >> discard_src;
 
     struct node* tmp = head;
-    for (; tmp != NULL;) {
+    struct node* tmp2 = head;
+    for (; tmp != NULL; tmp = tmp -> right) {
         if (tmp -> src == discard_src) {
-            head = discard_packet(head, tmp);
+            tmp2 = tmp;
+            head = discard_packet(head, tmp2);
         }
     }
 
     print_packets(head);
+    */
     return 0;
 }
